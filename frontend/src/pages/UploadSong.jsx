@@ -161,18 +161,19 @@ const UploadSongPage = () => {
                 {songs.length === 0 ? (
                     <Typography variant="body2" color="text.secondary">No uploads yet.</Typography>
                 ) : (
-                    songs.map((s) => (
+                    songs.map((s) => {
+                        const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+                        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+                        const coverUrl = s.coverFilename
+                            ? `${base}/songs/cover/${encodeURIComponent(s.coverFilename)}${token ? `?token=${encodeURIComponent(token)}` : ''}`
+                            : undefined;
+
+                        return (
                         <Paper key={s.filename} sx={{ p: 2 }}>
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
                                 <Avatar
                                     variant="square"
-                                    src={() => {
-                                        if (!s.coverFilename) return undefined;
-                                        const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-                                        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-                                        const url = `${base}/songs/cover/${encodeURIComponent(s.coverFilename)}`;
-                                        return token ? `${url}?token=${encodeURIComponent(token)}` : url;
-                                    }}
+                                    src={coverUrl}
                                     sx={{ width: 56, height: 56 }}
                                 />
                                 <Box sx={{ flex: 1 }}>
@@ -202,7 +203,8 @@ const UploadSongPage = () => {
                                 </Stack>
                             </Stack>
                         </Paper>
-                    ))
+                        );
+                    })
                 )}
             </Stack>
         </Container>
