@@ -164,7 +164,17 @@ const UploadSongPage = () => {
                     songs.map((s) => (
                         <Paper key={s.filename} sx={{ p: 2 }}>
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }}>
-                                <Avatar variant="square" src={s.coverFilename ? `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'}/songs/cover/${encodeURIComponent(s.coverFilename)}` : undefined} sx={{ width: 56, height: 56 }} />
+                                <Avatar
+                                    variant="square"
+                                    src={() => {
+                                        if (!s.coverFilename) return undefined;
+                                        const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+                                        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+                                        const url = `${base}/songs/cover/${encodeURIComponent(s.coverFilename)}`;
+                                        return token ? `${url}?token=${encodeURIComponent(token)}` : url;
+                                    }}
+                                    sx={{ width: 56, height: 56 }}
+                                />
                                 <Box sx={{ flex: 1 }}>
                                     <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>{s.title || s.originalName}</Typography>
                                     <Typography variant="body2" color="text.secondary" noWrap>{s.mimeType} • {toMB(s.size)} MB</Typography>
