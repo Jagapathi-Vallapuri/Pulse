@@ -10,7 +10,6 @@ const search = async (req, res) => {
 		if (!q) {
 			return res.status(400).json({ message: 'Missing query parameter ?q=track_name' });
 		}
-
 		const tracks = await searchTracks(q);
 		res.json(tracks);
 	} catch (err) {

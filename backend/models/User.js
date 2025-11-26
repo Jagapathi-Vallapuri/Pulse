@@ -19,25 +19,7 @@ const userSchema = new mongoose.Schema({
     avatarFilename: { type: String },
     avatarMimeType: { type: String },
     avatarGridfsId: { type: mongoose.Schema.Types.ObjectId },
-    uploadedSongs: [{
-        filename: { type: String, required: true },
-        originalName: { type: String, required: true },
-        size: { type: Number, required: true },
-        mimeType: { type: String, required: true },
-        uploadDate: { type: Date, default: Date.now },
-        gridfsId: { type: mongoose.Schema.Types.ObjectId },
-        title: { type: String },
-        coverFilename: { type: String },
-        coverMimeType: { type: String },
-        coverGridfsId: { type: mongoose.Schema.Types.ObjectId },
-        curationScore: { type: Number, default: 0 },
-        curation: {
-            hasCover: { type: Boolean, default: false },
-            titleLength: { type: Number, default: 0 },
-            preferredAudio: { type: Boolean, default: false },
-            sizeQuality: { type: String, enum: ['small','ok','large','unknown'], default: 'unknown' }
-        }
-    }]
+    uploadedSongs: []
 });
 
 module.exports = mongoose.model('User', userSchema);  

@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const path = require('path');
 
 require('dotenv').config();
@@ -23,7 +22,6 @@ const { generalLimiter } = require('./middleware/rateLimitMiddleware');
 
 
 app.use(express.json({ limit: '10mb' }));
-app.use(cookieParser());
 
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:5173')
   .split(',')

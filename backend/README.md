@@ -1,6 +1,6 @@
 # Pulse — Backend
 
-This folder contains the backend REST API for the Pulse application (Express + MongoDB + GridFS + Redis). This README is a concise developer guide to get the backend running locally, explains the 2FA session flow, documents media storage (avatars, playlist covers) in GridFS, and the Jamendo integration with an audio streaming proxy.
+This folder contains the backend REST API for the Pulse application (Express + MongoDB + GridFS + Redis). This README is a concise developer guide to get the backend running locally, explains the 2FA session flow, documents media storage (avatars, playlist covers, personal uploads) in GridFS, and the Jamendo integration with an audio streaming proxy.
 
 ## Quick start
 
@@ -66,18 +66,19 @@ Images (user avatars and playlist covers) and uploaded songs are stored in Mongo
 	- Upload: `POST /api/users/me/avatar` (multipart form-data, field: `avatar`)
 	- Stream current: `GET /api/users/me/avatar` (auth required) — streams from GridFS
 	- Delete: `DELETE /api/users/me/avatar`
-	- On upload or delete, legacy on-disk files are cleaned up if referenced
+	- Avatars are always served from GridFS; the previous filesystem fallback has been removed.
 
 - Playlist covers
 	- Upload: `POST /api/users/playlists/:id/cover` (multipart form-data, field: `cover`)
 	- Stream public: `GET /api/images/playlist/:id`
-	- Old GridFS file and any legacy on-disk file are removed on update
+	- Old GridFS file is removed on update
 
 - Personal songs
 	- Upload: `POST /api/songs/upload` (multipart; fields: `song`, optional `cover`)
 	- Stream audio: `GET /api/songs/stream/:filename`
 	- Stream cover: `GET /api/songs/cover/:filename`
 	- Delete: `DELETE /api/songs/:filename`
+	- Metadata is stored in an independent `Song` collection (see `models/Song.js`) and references GridFS IDs; user documents no longer embed full song metadata.
 
 All streaming endpoints support proper cleanup on client disconnect to avoid resource leaks.
 
@@ -88,7 +89,7 @@ Current design enforces email-based 2FA only for:
 1. Initial registration (account activation)
 2. Password changes (confirmation)
 
-Login itself is now a single step (JWT issued immediately) but only after the user has verified their email via the registration 2FA. A new field `isVerified` on the `User` model gates access:
+Login itself is a single step (JWT issued immediately) but only after the user has verified their email via the registration 2FA. A field `isVerified` on the `User` model gates access:
 
 - `POST /api/auth/register` creates the user with `isVerified=false`, generates a `sessionId` + 6‑digit code, stores it in Redis at key `2fa:session:{sessionId}` with JSON payload `{ code, email, purpose: 'register' }` (TTL ~300s) and emails the code.
 - Client calls `POST /api/auth/verify-2fa` with `{ email, code, type: 'register', sessionId }` to activate. On success: `isVerified` is set true and a JWT is returned.

@@ -58,29 +58,11 @@ const login = async (req, res) => {
 const verify2FAUnified = async (req, res) => {
     try {
         const { email, code, type, sessionId } = req.body;
-        if (!type || !['login', 'password-change', 'register'].includes(type)) {
+        if (!type || !['password-change', 'register'].includes(type)) {
             return res.status(400).json({ success: false, message: 'Invalid or missing type. Must be "login", "register" or "password-change"' });
         }
-        if (type === 'login') {
-            if (!sessionId) return res.status(400).json({ success: false, message: 'Missing sessionId for login verification' });
 
-            const key = `2fa:session:${sessionId}`;
-            const raw = await cache.get(key);
-            if (!raw) return res.status(401).json({ success: false, message: 'Invalid or expired 2FA code' });
-            let parsed;
-            try { parsed = JSON.parse(raw); } catch { parsed = { code: raw }; }
-            if (parsed.code !== code || parsed.purpose !== 'login') {
-                return res.status(401).json({ success: false, message: 'Invalid or expired 2FA code' });
-            }
-            await cache.del(key);
-
-            const user = await User.findOne({ email });
-            if (!user) return res.status(400).json({ success: false, message: 'User not found' });
-            if (!user.isVerified) return res.status(403).json({ success: false, message: 'Account not verified' });
-
-            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30m' });
-            return res.json({ success: true, message: '2FA verification successful', data: { token, user: { id: user._id, username: user.username, email: user.email } } });
-        } else if (type === 'register') {
+        if (type === 'register') {
             if (!sessionId) return res.status(400).json({ success: false, message: 'Missing sessionId for registration verification' });
             const key = `2fa:session:${sessionId}`;
             const raw = await cache.get(key);
