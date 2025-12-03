@@ -168,7 +168,7 @@ const UserProfile = () => {
     return (
         <Container maxWidth="lg" sx={{ pt: 6, pb: 10 }}>
             <Stack spacing={4}>
-                <Paper elevation={0} sx={(theme) => ({ p: 4, display: 'flex', gap: 3, alignItems: 'center', background: theme.palette.gradients.surface, position: 'relative' })}>
+                <Paper elevation={0} sx={(theme) => ({ p: 4, display: 'flex', gap: 3, alignItems: 'center', bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}`, position: 'relative' })}>
                     <Box sx={{ position: 'relative' }}>
                         <Avatar
                             src={avatarBlobUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${profile?.username || 'User'}`}
@@ -226,14 +226,14 @@ const UserProfile = () => {
 
                 <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' } }}>
                     {metrics.map(m => (
-                        <Paper key={m.label} elevation={0} sx={(theme) => ({ p: 3, textAlign: 'center', background: theme.palette.gradients.surface })}>
+                        <Paper key={m.label} elevation={0} sx={(theme) => ({ p: 3, textAlign: 'center', bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}` })}>
                             <Typography variant="h5" sx={{ fontWeight: 600 }}>{m.value}</Typography>
                             <Typography variant="body2" color="text.secondary">{m.label}</Typography>
                         </Paper>
                     ))}
                 </Box>
 
-                <Paper elevation={0} sx={(theme) => ({ p: 4, background: theme.palette.gradients.surface })}>
+                <Paper elevation={0} sx={(theme) => ({ p: 4, bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}` })}>
                     <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>Recent Activity</Typography>
                     <Divider sx={{ mb: 2 }} />
                     <Typography variant="body2" color="text.secondary">Recent listening history or favorite additions will appear here.</Typography>

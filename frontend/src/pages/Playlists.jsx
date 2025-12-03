@@ -4,6 +4,7 @@ import PlaylistCard from '../components/cards/PlaylistCard.jsx';
 import { useNavigate } from 'react-router-dom';
 import api from '../../client.js';
 import { useUI } from '../context/UIContext.jsx';
+import { motion } from 'framer-motion';
 
 const PlaylistsPage = () => {
     const navigate = useNavigate();
@@ -47,6 +48,25 @@ const PlaylistsPage = () => {
         }
     };
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, ease: "easeOut" }
+        }
+    };
+
     return (
         <Container maxWidth="lg" sx={{ pt: 8, pb: 8 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
@@ -57,7 +77,7 @@ const PlaylistsPage = () => {
             {state.loading ? (
                 <Grid container spacing={2}>
                     {Array.from({ length: 8 }).map((_, i) => (
-                        <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Grid key={i} item xs={12} sm={6} md={3}>
                             <Skeleton variant="rectangular" height={120} />
                         </Grid>
                     ))}
@@ -67,9 +87,9 @@ const PlaylistsPage = () => {
                     <Typography>You don't have any playlists yet.</Typography>
                 </Paper>
             ) : (
-                <Grid container spacing={2}>
+                <Grid container spacing={2} component={motion.div} variants={containerVariants} initial="hidden" animate="visible">
                     {state.data.map(pl => (
-                        <Grid key={pl._id} size={{ xs: 12, sm: 6, md: 3 }}>
+                        <Grid key={pl._id} item xs={12} sm={6} md={3} component={motion.div} variants={itemVariants}>
                             <PlaylistCard playlist={pl} onOpen={(p) => navigate(`/playlists/${encodeURIComponent(p._id)}`)} />
                         </Grid>
                     ))}

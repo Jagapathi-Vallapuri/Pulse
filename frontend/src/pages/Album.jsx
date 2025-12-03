@@ -9,6 +9,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import { motion } from 'framer-motion';
 
 const AlbumPage = () => {
     const { id } = useParams();
@@ -112,7 +113,17 @@ const AlbumPage = () => {
 
     const album = state.data;
     const header = (
-        <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, mb: 4, display: 'flex', gap: 3, alignItems: 'center' }}>
+        <Paper elevation={0} sx={(theme) => ({
+            p: { xs: 3, md: 5 },
+            mb: 4,
+            display: 'flex',
+            gap: 3,
+            alignItems: 'center',
+            bgcolor: 'background.paper',
+            borderRadius: 4,
+            boxShadow: theme.palette.mode === 'light' ? '0 4px 12px rgba(0,0,0,0.05)' : '0 4px 12px rgba(0,0,0,0.3)',
+            border: `1px solid ${theme.palette.divider}`
+        })}>
             {state.loading ? (
                 <Skeleton variant="rectangular" width={160} height={160} />
             ) : (
@@ -154,63 +165,71 @@ const AlbumPage = () => {
 
     return (
         <Container maxWidth="lg" sx={{ pt: 8, pb: 6 }}>
-            {header}
-            <Paper elevation={0} sx={{ p: { xs: 2, md: 3 } }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Tracks</Typography>
-                {state.loading ? (
-                    <Stack spacing={1}>
-                        {[...Array(6)].map((_, i) => (
-                            <Skeleton key={i} variant="rectangular" height={56} />
-                        ))}
-                    </Stack>
-                ) : !album?.tracks?.length ? (
-                    <Typography color="text.secondary">No tracks found in this album.</Typography>
-                ) : (
-                    <List>
-                        {album.tracks.map((t, idx) => (
-                            <React.Fragment key={t.id || idx}>
-                                <ListItem
-                                    disablePadding
-                                    secondaryAction={
-                                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'flex-end', sm: 'center' } }}>
-                                            <Typography variant="body2" color="text.secondary" sx={{ minWidth: 44, textAlign: 'right' }}>
-                                                {formatDuration(t.duration)}
-                                            </Typography>
-                                            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
-                                                <Tooltip title={(favorites.ids || []).includes(String(t.id)) ? 'Unfavorite' : 'Favorite'}>
-                                                    <IconButton
-                                                        size="small"
-                                                        color={(favorites.ids || []).includes(String(t.id)) ? 'error' : 'default'}
-                                                        onClick={() => toggleFavorite(t, !(favorites.ids || []).includes(String(t.id)))}
-                                                    >
-                                                        {(favorites.ids || []).includes(String(t.id)) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                                                    </IconButton>
-                                                </Tooltip>
-                                                <Tooltip title="Add to playlist">
-                                                    <IconButton size="small" onClick={() => openAddDialog('track', t)}>
-                                                        <PlaylistAddIcon />
-                                                    </IconButton>
-                                                </Tooltip>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                {header}
+                <Paper elevation={0} sx={(theme) => ({
+                    p: { xs: 2, md: 3 },
+                    bgcolor: 'background.paper',
+                    borderRadius: 4,
+                    boxShadow: theme.palette.mode === 'light' ? '0 4px 12px rgba(0,0,0,0.05)' : '0 4px 12px rgba(0,0,0,0.3)',
+                    border: `1px solid ${theme.palette.divider}`
+                })}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>Tracks</Typography>
+                    {state.loading ? (
+                        <Stack spacing={1}>
+                            {[...Array(6)].map((_, i) => (
+                                <Skeleton key={i} variant="rectangular" height={56} />
+                            ))}
+                        </Stack>
+                    ) : !album?.tracks?.length ? (
+                        <Typography color="text.secondary">No tracks found in this album.</Typography>
+                    ) : (
+                        <List>
+                            {album.tracks.map((t, idx) => (
+                                <React.Fragment key={t.id || idx}>
+                                    <ListItem
+                                        disablePadding
+                                        secondaryAction={
+                                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignItems: { xs: 'flex-end', sm: 'center' } }}>
+                                                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 44, textAlign: 'right' }}>
+                                                    {formatDuration(t.duration)}
+                                                </Typography>
+                                                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end' }}>
+                                                    <Tooltip title={(favorites.ids || []).includes(String(t.id)) ? 'Unfavorite' : 'Favorite'}>
+                                                        <IconButton
+                                                            size="small"
+                                                            color={(favorites.ids || []).includes(String(t.id)) ? 'error' : 'default'}
+                                                            onClick={() => toggleFavorite(t, !(favorites.ids || []).includes(String(t.id)))}
+                                                        >
+                                                            {(favorites.ids || []).includes(String(t.id)) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title="Add to playlist">
+                                                        <IconButton size="small" onClick={() => openAddDialog('track', t)}>
+                                                            <PlaylistAddIcon />
+                                                        </IconButton>
+                                                    </Tooltip>
+                                                </Stack>
                                             </Stack>
-                                        </Stack>
-                                    }
-                                >
-                                    <ListItemButton onClick={() => playQueue(album.tracks, idx)}>
-                                        <ListItemAvatar>
-                                            <Avatar variant="rounded" src={t.image} alt={t.name} />
-                                        </ListItemAvatar>
-                                        <ListItemText
-                                            primary={t.name}
-                                            secondary={t.artist}
-                                        />
-                                    </ListItemButton>
-                                </ListItem>
-                                {idx < album.tracks.length - 1 && <Divider component="li" />}
-                            </React.Fragment>
-                        ))}
-                    </List>
-                )}
-            </Paper>
+                                        }
+                                    >
+                                        <ListItemButton onClick={() => playQueue(album.tracks, idx)}>
+                                            <ListItemAvatar>
+                                                <Avatar variant="rounded" src={t.image} alt={t.name} />
+                                            </ListItemAvatar>
+                                            <ListItemText
+                                                primary={t.name}
+                                                secondary={t.artist}
+                                            />
+                                        </ListItemButton>
+                                    </ListItem>
+                                    {idx < album.tracks.length - 1 && <Divider component="li" />}
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    )}
+                </Paper>
+            </motion.div>
             <Dialog open={dlg.open} onClose={closeAddDialog} fullWidth maxWidth="xs">
                 <DialogTitle>Add to playlist</DialogTitle>
                 <DialogContent>

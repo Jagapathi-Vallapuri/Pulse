@@ -10,6 +10,7 @@ import { useUI } from '../context/UIContext.jsx';
 import { usePlayer } from '../context/PlayerContext.jsx';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { motion } from 'framer-motion';
 
 const PlaylistDetailPage = () => {
     const { id } = useParams();
@@ -130,106 +131,121 @@ const PlaylistDetailPage = () => {
 
     return (
         <Container maxWidth="md" sx={{ pt: 8, pb: 6 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                <Stack direction="row" spacing={2} alignItems="center">
-                    <Avatar variant="rounded" src={playlist?.coverUrl} alt={playlist?.name} sx={{ width: 72, height: 72 }} />
-                    <Stack spacing={1}>
-                        <TextField
-                            value={name}
-                            onChange={(e) => setName(e.target.value.slice(0, 120))}
-                            placeholder="Untitled Playlist"
-                            variant="standard"
-                            inputProps={{ 'aria-label': 'Playlist name' }}
-                            sx={{ '& .MuiInputBase-input': { fontSize: 24, fontWeight: 700 } }}
-                        />
-                        <Button size="small" variant="outlined" component="label" disabled={coverUploading}>
-                            Change cover
-                            <input hidden type="file" accept="image/*" onChange={onChangeCover} />
-                        </Button>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <Avatar variant="rounded" src={playlist?.coverUrl} alt={playlist?.name} sx={{ width: 72, height: 72 }} />
+                        <Stack spacing={1}>
+                            <TextField
+                                value={name}
+                                onChange={(e) => setName(e.target.value.slice(0, 120))}
+                                placeholder="Untitled Playlist"
+                                variant="standard"
+                                inputProps={{ 'aria-label': 'Playlist name' }}
+                                sx={{ '& .MuiInputBase-input': { fontSize: 24, fontWeight: 700 } }}
+                            />
+                            <Button size="small" variant="outlined" component="label" disabled={coverUploading}>
+                                Change cover
+                                <input hidden type="file" accept="image/*" onChange={onChangeCover} />
+                            </Button>
+                        </Stack>
+                    </Stack>
+                    <Stack direction="row" spacing={1}>
+                        <Button variant="outlined" onClick={() => navigate('/playlists')}>Back</Button>
+                        <Button variant="contained" startIcon={<SaveIcon />} onClick={onSave} disabled={saving || loading}>Save changes</Button>
                     </Stack>
                 </Stack>
-                <Stack direction="row" spacing={1}>
-                    <Button variant="outlined" onClick={() => navigate('/playlists')}>Back</Button>
-                    <Button variant="contained" startIcon={<SaveIcon />} onClick={onSave} disabled={saving || loading}>Save changes</Button>
-                </Stack>
-            </Stack>
 
-            <Paper elevation={0} sx={{ p: 2, mb: 2 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>Description</Typography>
-                <TextField
-                    value={desc}
-                    onChange={(e) => setDesc(e.target.value)}
-                    placeholder="Write a short description for this playlist..."
-                    fullWidth
-                    multiline
-                    minRows={2}
-                />
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                    {tracks.length} track{tracks.length === 1 ? '' : 's'} · {formatTotalDuration(tracks)}
-                </Typography>
-            </Paper>
+                <Paper elevation={0} sx={(theme) => ({
+                    p: 2,
+                    mb: 2,
+                    bgcolor: 'background.paper',
+                    borderRadius: 4,
+                    boxShadow: theme.palette.mode === 'light' ? '0 4px 12px rgba(0,0,0,0.05)' : '0 4px 12px rgba(0,0,0,0.3)',
+                    border: `1px solid ${theme.palette.divider}`
+                })}>
+                    <Typography variant="subtitle2" sx={{ mb: 1 }}>Description</Typography>
+                    <TextField
+                        value={desc}
+                        onChange={(e) => setDesc(e.target.value)}
+                        placeholder="Write a short description for this playlist..."
+                        fullWidth
+                        multiline
+                        minRows={2}
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                        {tracks.length} track{tracks.length === 1 ? '' : 's'} · {formatTotalDuration(tracks)}
+                    </Typography>
+                </Paper>
 
-            {!loading && tracks.length > 0 && (
-                <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-                    <Tooltip title="Play now">
-                        <IconButton color="primary" onClick={() => playNow(tracks)}>
-                            <PlayArrowIcon />
-                        </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Add to queue">
-                        <IconButton onClick={() => enqueue(tracks)}>
-                            <QueueMusicIcon />
-                        </IconButton>
-                    </Tooltip>
-                </Stack>
-            )}
-            {loading ? (
-                <Paper elevation={0} sx={{ p: 2 }}>
-                    <Stack spacing={1}>{Array.from({ length: 6 }).map((_, i) => (<Skeleton key={i} variant="rectangular" height={56} />))}</Stack>
-                </Paper>
-            ) : tracks.length === 0 ? (
-                <Paper elevation={0} sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-                    <Typography>No tracks in this playlist.</Typography>
-                </Paper>
-            ) : (
-                <Paper elevation={0} sx={{ p: 1 }}>
-                    <List>
-                        {tracks.map((t, idx) => (
-                            <React.Fragment key={t.id || idx}>
-                                <ListItem
-                                    disablePadding
-                                    draggable
-                                    onDragStart={(e) => { setDragIndex(idx); try { e.dataTransfer.setData('text/plain', String(idx)); } catch (_) { }; e.dataTransfer.effectAllowed = 'move'; }}
-                                    onDragOver={(e) => { e.preventDefault(); setHoverIndex(idx); }}
-                                    onDragLeave={() => setHoverIndex(null)}
-                                    onDrop={(e) => { e.preventDefault(); setHoverIndex(null); const from = dragIndex ?? parseInt(e.dataTransfer.getData('text/plain'), 10); if (!Number.isFinite(from) || from === idx) return; setTracks((prev) => reorder(prev, from, idx)); setDragIndex(null); }}
-                                    sx={{ bgcolor: hoverIndex === idx ? 'action.hover' : 'transparent', transition: 'background-color 120ms' }}
-                                    secondaryAction={
-                                        <Stack direction="row" spacing={0.5} alignItems="center">
-                                            <Tooltip title={(favorites.ids || []).includes(String(t.id)) ? 'Unfavorite' : 'Favorite'}>
-                                                <IconButton
-                                                    size="small"
-                                                    color={(favorites.ids || []).includes(String(t.id)) ? 'error' : 'default'}
-                                                    onClick={() => toggleFavorite(t, !(favorites.ids || []).includes(String(t.id)))}
-                                                >
-                                                    {(favorites.ids || []).includes(String(t.id)) ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                {!loading && tracks.length > 0 && (
+                    <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+                        <Tooltip title="Play now">
+                            <IconButton color="primary" onClick={() => playNow(tracks)}>
+                                <PlayArrowIcon />
+                            </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Add to queue">
+                            <IconButton onClick={() => enqueue(tracks)}>
+                                <QueueMusicIcon />
+                            </IconButton>
+                        </Tooltip>
+                    </Stack>
+                )}
+                {loading ? (
+                    <Paper elevation={0} sx={{ p: 2 }}>
+                        <Stack spacing={1}>{Array.from({ length: 6 }).map((_, i) => (<Skeleton key={i} variant="rectangular" height={56} />))}</Stack>
+                    </Paper>
+                ) : tracks.length === 0 ? (
+                    <Paper elevation={0} sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
+                        <Typography>No tracks in this playlist.</Typography>
+                    </Paper>
+                ) : (
+                    <Paper elevation={0} sx={(theme) => ({
+                        p: 1,
+                        bgcolor: 'background.paper',
+                        borderRadius: 4,
+                        boxShadow: theme.palette.mode === 'light' ? '0 4px 12px rgba(0,0,0,0.05)' : '0 4px 12px rgba(0,0,0,0.3)',
+                        border: `1px solid ${theme.palette.divider}`
+                    })}>
+                        <List>
+                            {tracks.map((t, idx) => (
+                                <React.Fragment key={t.id || idx}>
+                                    <ListItem
+                                        disablePadding
+                                        draggable
+                                        onDragStart={(e) => { setDragIndex(idx); try { e.dataTransfer.setData('text/plain', String(idx)); } catch (_) { }; e.dataTransfer.effectAllowed = 'move'; }}
+                                        onDragOver={(e) => { e.preventDefault(); setHoverIndex(idx); }}
+                                        onDragLeave={() => setHoverIndex(null)}
+                                        onDrop={(e) => { e.preventDefault(); setHoverIndex(null); const from = dragIndex ?? parseInt(e.dataTransfer.getData('text/plain'), 10); if (!Number.isFinite(from) || from === idx) return; setTracks((prev) => reorder(prev, from, idx)); setDragIndex(null); }}
+                                        sx={{ bgcolor: hoverIndex === idx ? 'action.hover' : 'transparent', transition: 'background-color 120ms' }}
+                                        secondaryAction={
+                                            <Stack direction="row" spacing={0.5} alignItems="center">
+                                                <Tooltip title={(favorites.ids || []).includes(String(t.id)) ? 'Unfavorite' : 'Favorite'}>
+                                                    <IconButton
+                                                        size="small"
+                                                        color={(favorites.ids || []).includes(String(t.id)) ? 'error' : 'default'}
+                                                        onClick={() => toggleFavorite(t, !(favorites.ids || []).includes(String(t.id)))}
+                                                    >
+                                                        {(favorites.ids || []).includes(String(t.id)) ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <IconButton size="small" aria-label="drag handle" sx={{ cursor: 'grab' }}>
+                                                    <DragIndicatorIcon fontSize="small" />
                                                 </IconButton>
-                                            </Tooltip>
-                                            <IconButton size="small" aria-label="drag handle" sx={{ cursor: 'grab' }}>
-                                                <DragIndicatorIcon fontSize="small" />
-                                            </IconButton>
-                                        </Stack>
-                                    }
-                                >
-                                    <ListItemAvatar><Avatar variant="rounded" src={t.image} alt={t.name} /></ListItemAvatar>
-                                    <ListItemText primary={t.name} secondary={t.artist} onClick={() => playQueue(tracks, idx)} />
-                                </ListItem>
-                                {idx < tracks.length - 1 && <Divider component="li" />}
-                            </React.Fragment>
-                        ))}
-                    </List>
-                </Paper>
-            )}
+                                            </Stack>
+                                        }
+                                    >
+                                        <ListItemAvatar><Avatar variant="rounded" src={t.image} alt={t.name} /></ListItemAvatar>
+                                        <ListItemText primary={t.name} secondary={t.artist} onClick={() => playQueue(tracks, idx)} />
+                                    </ListItem>
+                                    {idx < tracks.length - 1 && <Divider component="li" />}
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    </Paper>
+                )}
+            </motion.div>
         </Container>
     );
 };

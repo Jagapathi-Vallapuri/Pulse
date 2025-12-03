@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { Container, Paper, Typography, Alert, Link } from '@mui/material';
 import LoginForm from '../components/auth/LoginForm.jsx';
 import { useUI } from '../context/UIContext.jsx';
-
+import { motion } from 'framer-motion';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -49,32 +49,36 @@ const Login = () => {
     // Removed 2FA related hooks/state
 
     return (
-        <>
-            <Container component="main" maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
-                <Box sx={{
-                    minHeight: 'calc(100vh - 64px)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    py: 6
-                }}>
+        <Container component="main" maxWidth="sm" sx={{ position: 'relative', zIndex: 1 }}>
+            <Box sx={{
+                minHeight: 'calc(100vh - 64px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                py: 6
+            }}>
+                <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    style={{ width: '100%', maxWidth: 520 }}
+                >
                     <Paper
                         elevation={0}
                         sx={(theme) => ({
                             p: 5,
                             width: '100%',
-                            maxWidth: 520,
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'stretch',
                             gap: 2,
-                            background: theme.palette.gradients.surface,
-                            backdropFilter: 'blur(14px)',
+                            bgcolor: 'background.paper',
                             borderRadius: 4,
                             boxShadow: theme.palette.mode === 'light'
-                                ? '0 6px 24px rgba(0,0,0,0.08)'
-                                : '0 8px 40px rgba(0,0,0,0.65)',
-                            position: 'relative'
+                                ? '0 4px 12px rgba(0,0,0,0.05)'
+                                : '0 4px 12px rgba(0,0,0,0.3)',
+                            position: 'relative',
+                            border: `1px solid ${theme.palette.divider}`
                         })}
                     >
                         <Typography component="h1" variant="h4" gutterBottom sx={{ textAlign: 'center' }}>
@@ -99,9 +103,9 @@ const Login = () => {
                             </Link>
                         </Typography>
                     </Paper>
-                </Box>
-            </Container>
-        </>
+                </motion.div>
+            </Box>
+        </Container>
     );
 }
 

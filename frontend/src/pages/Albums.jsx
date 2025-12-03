@@ -5,6 +5,7 @@ import AlbumCard from '../components/cards/AlbumCard.jsx';
 import api from '../../client.js';
 import { useNavigate } from 'react-router-dom';
 import { useUI } from '../context/UIContext.jsx';
+import { motion } from 'framer-motion';
 
 const DEFAULT_CATEGORIES = ['rock', 'pop', 'electronic', 'jazz', 'hiphop', 'classical', 'relaxation', 'world', 'metal', 'soundtrack'];
 
@@ -33,6 +34,26 @@ const AlbumsPage = () => {
         return () => ac.abort();
     }, [categories, toastError]);
 
+    const carouselVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.1,
+                delayChildren: 0.2
+            }
+        }
+    };
+
+    const cardVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.5, ease: "easeOut" }
+        }
+    };
+
     return (
         <Container maxWidth="lg" sx={{ pt: 8, pb: 8 }}>
             <Typography variant="h4" sx={{ fontWeight: 800, mb: 3 }}>Albums by Category</Typography>
@@ -46,13 +67,14 @@ const AlbumsPage = () => {
                                 {[...Array(5)].map((_, i) => (<Skeleton key={i} variant="rectangular" width={200} height={220} />))}
                             </Stack>
                         ) : (
-                            <Carousel ariaLabel={`albums-${cat}`}>
+                            <Carousel ariaLabel={`albums-${cat}`} variants={carouselVariants}>
                                 {(state.data[cat] || []).map((al) => (
-                                    <AlbumCard
-                                        key={al.id || al.name}
-                                        album={al}
-                                        onOpen={(alb) => navigate(`/album/${encodeURIComponent(alb.id)}`)}
-                                    />
+                                    <motion.div key={al.id || al.name} variants={cardVariants} style={{ height: '100%' }}>
+                                        <AlbumCard
+                                            album={al}
+                                            onOpen={(alb) => navigate(`/album/${encodeURIComponent(alb.id)}`)}
+                                        />
+                                    </motion.div>
                                 ))}
                             </Carousel>
                         )}

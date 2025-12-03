@@ -1,19 +1,43 @@
 import React from 'react';
-import { Card, CardActionArea, CardContent, CardMedia, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, CardContent, CardMedia, Typography } from '@mui/material';
+
+import { motion } from 'framer-motion';
 
 const PlaylistCard = ({ playlist, onOpen }) => {
-  const cover = playlist.coverUrl || `https://picsum.photos/seed/playlist-${encodeURIComponent(playlist._id || playlist.name)}/300/300`;
-  return (
-    <Card>
-      <CardActionArea onClick={() => onOpen?.(playlist)}>
-        <CardMedia component="img" height="140" image={cover} alt={playlist.name} />
-        <CardContent>
-          <Typography variant="subtitle1" noWrap title={playlist.name} sx={{ fontWeight: 600 }}>{playlist.name}</Typography>
-          <Typography variant="body2" color="text.secondary">{(playlist.tracks?.length || 0)} tracks</Typography>
-        </CardContent>
-      </CardActionArea>
-    </Card>
-  );
+    const cover = playlist.coverUrl || `https://picsum.photos/seed/playlist-${encodeURIComponent(playlist._id || playlist.name)}/300/300`;
+    return (
+        <motion.div
+            whileHover={{ y: -6 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        >
+            <Card sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:hover .play-overlay': { opacity: 1 }
+            }}>
+                <CardActionArea onClick={() => onOpen?.(playlist)} sx={{ flexGrow: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
+                    <Box sx={{ position: 'relative', width: '100%', paddingTop: '100%', bgcolor: 'action.hover' }}>
+                        <CardMedia component="img" image={cover} alt={playlist.name} sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <Box className="play-overlay" sx={{
+                            position: 'absolute',
+                            top: 0, left: 0, right: 0, bottom: 0,
+                            bgcolor: 'rgba(0,0,0,0.3)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            opacity: 0,
+                            transition: 'opacity 0.2s ease-in-out'
+                        }} />
+                    </Box>
+                    <CardContent sx={{ flexGrow: 1, p: 2 }}>
+                        <Typography variant="subtitle1" noWrap title={playlist.name} sx={{ fontWeight: 700 }}>{playlist.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">{(playlist.tracks?.length || 0)} tracks</Typography>
+                    </CardContent>
+                </CardActionArea>
+            </Card>
+        </motion.div>
+    );
 };
 
 export default PlaylistCard;

@@ -21,26 +21,40 @@ const AuthedPlayer = () => {
     return isAuthenticated ? <PlayerBar /> : null;
 };
 
+import { AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
+import PageTransition from './components/PageTransition.jsx';
+
+const AnimatedRoutes = () => {
+    const location = useLocation();
+
+    return (
+        <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<PageTransition><Login /></PageTransition>} />
+                <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+                <Route path="/home" element={<ProtectedRoute><PageTransition><Home /></PageTransition></ProtectedRoute>} />
+                <Route path="/albums" element={<ProtectedRoute><PageTransition><AlbumsPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/search" element={<ProtectedRoute><PageTransition><SearchPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/playlists" element={<ProtectedRoute><PageTransition><PlaylistsPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/playlists/:id" element={<ProtectedRoute><PageTransition><PlaylistDetailPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/playlist/:id" element={<ProtectedRoute><PageTransition><PlaylistDetailPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/upload" element={<ProtectedRoute><PageTransition><UploadSongPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/album/:id" element={<ProtectedRoute><PageTransition><AlbumPage /></PageTransition></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><PageTransition><UserProfile /></PageTransition></ProtectedRoute>} />
+                <Route path="/settings/password" element={<ProtectedRoute><PageTransition><ChangePassword /></PageTransition></ProtectedRoute>} />
+            </Routes>
+        </AnimatePresence>
+    );
+};
+
 function App() {
 
     return (
         <Router>
             <AuthProvider>
                 <Header />
-                <Routes>
-                    <Route path="/" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-                    <Route path="/albums" element={<ProtectedRoute><AlbumsPage /></ProtectedRoute>} />
-                    <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
-                    <Route path="/playlists" element={<ProtectedRoute><PlaylistsPage /></ProtectedRoute>} />
-                    <Route path="/playlists/:id" element={<ProtectedRoute><PlaylistDetailPage /></ProtectedRoute>} />
-                    <Route path="/playlist/:id" element={<ProtectedRoute><PlaylistDetailPage /></ProtectedRoute>} />
-                    <Route path="/upload" element={<ProtectedRoute><UploadSongPage /></ProtectedRoute>} />
-                    <Route path="/album/:id" element={<ProtectedRoute><AlbumPage /></ProtectedRoute>} />
-                    <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-                    <Route path="/settings/password" element={<ProtectedRoute><ChangePassword /></ProtectedRoute>} />
-                </Routes>
+                <AnimatedRoutes />
                 <AuthedPlayer />
             </AuthProvider>
         </Router>

@@ -7,6 +7,7 @@ import { usePlayer } from '../context/PlayerContext.jsx';
 import { useUI } from '../context/UIContext.jsx';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { motion } from 'framer-motion';
 
 function useQuery() {
     const { search } = useLocation();
@@ -101,42 +102,50 @@ const SearchPage = () => {
                 />
             </form>
 
-            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-                <Button variant="contained" disabled={!results.length} onClick={() => playNow(results)}>Play all</Button>
-                <Button variant="outlined" disabled={!results.length} onClick={() => enqueue(results)}>Add all to queue</Button>
-            </Stack>
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+                <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                    <Button variant="contained" disabled={!results.length} onClick={() => playNow(results)}>Play all</Button>
+                    <Button variant="outlined" disabled={!results.length} onClick={() => enqueue(results)}>Add all to queue</Button>
+                </Stack>
 
-            <Paper elevation={0} sx={{ mt: 2 }}>
-                {loading ? (
-                    <Stack spacing={1} sx={{ p: 2 }}>{Array.from({ length: 8 }).map((_, i) => (<Skeleton key={i} variant="rectangular" height={56} />))}</Stack>
-                ) : results.length === 0 ? (
-                    <Typography sx={{ p: 2 }} color="text.secondary">{q?.trim() ? 'No results.' : 'Type to search.'}</Typography>
-                ) : (
-                    <List>
-                        {results.map((t, idx) => (
-                            <React.Fragment key={t.id || idx}>
-                                <ListItem
-                                    disablePadding
-                                    secondaryAction={
-                                        <Stack direction="row" spacing={1} alignItems="center">
-                                            <Tooltip title={(favorites.ids || []).includes(String(t.id)) ? 'Unfavorite' : 'Favorite'}>
-                                                <IconButton size="small" color={(favorites.ids || []).includes(String(t.id)) ? 'error' : 'default'} onClick={() => toggleFavorite(t, !(favorites.ids || []).includes(String(t.id)))}>
-                                                    {(favorites.ids || []).includes(String(t.id)) ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
-                                                </IconButton>
-                                            </Tooltip>
-                                            <Button size="small" onClick={() => enqueue([t])}>Add</Button>
-                                        </Stack>
-                                    }
-                                >
-                                    <ListItemAvatar><Avatar variant="rounded" src={t.image} alt={t.name} /></ListItemAvatar>
-                                    <ListItemText primary={t.name} secondary={t.artist} onClick={() => playClicked(t)} />
-                                </ListItem>
-                                {idx < results.length - 1 && <Divider component="li" />}
-                            </React.Fragment>
-                        ))}
-                    </List>
-                )}
-            </Paper>
+                <Paper elevation={0} sx={(theme) => ({
+                    mt: 2,
+                    bgcolor: 'background.paper',
+                    borderRadius: 4,
+                    boxShadow: theme.palette.mode === 'light' ? '0 4px 12px rgba(0,0,0,0.05)' : '0 4px 12px rgba(0,0,0,0.3)',
+                    border: `1px solid ${theme.palette.divider}`
+                })}>
+                    {loading ? (
+                        <Stack spacing={1} sx={{ p: 2 }}>{Array.from({ length: 8 }).map((_, i) => (<Skeleton key={i} variant="rectangular" height={56} />))}</Stack>
+                    ) : results.length === 0 ? (
+                        <Typography sx={{ p: 2 }} color="text.secondary">{q?.trim() ? 'No results.' : 'Type to search.'}</Typography>
+                    ) : (
+                        <List>
+                            {results.map((t, idx) => (
+                                <React.Fragment key={t.id || idx}>
+                                    <ListItem
+                                        disablePadding
+                                        secondaryAction={
+                                            <Stack direction="row" spacing={1} alignItems="center">
+                                                <Tooltip title={(favorites.ids || []).includes(String(t.id)) ? 'Unfavorite' : 'Favorite'}>
+                                                    <IconButton size="small" color={(favorites.ids || []).includes(String(t.id)) ? 'error' : 'default'} onClick={() => toggleFavorite(t, !(favorites.ids || []).includes(String(t.id)))}>
+                                                        {(favorites.ids || []).includes(String(t.id)) ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                                                    </IconButton>
+                                                </Tooltip>
+                                                <Button size="small" onClick={() => enqueue([t])}>Add</Button>
+                                            </Stack>
+                                        }
+                                    >
+                                        <ListItemAvatar><Avatar variant="rounded" src={t.image} alt={t.name} /></ListItemAvatar>
+                                        <ListItemText primary={t.name} secondary={t.artist} onClick={() => playClicked(t)} />
+                                    </ListItem>
+                                    {idx < results.length - 1 && <Divider component="li" />}
+                                </React.Fragment>
+                            ))}
+                        </List>
+                    )}
+                </Paper>
+            </motion.div>
         </Container>
     );
 };

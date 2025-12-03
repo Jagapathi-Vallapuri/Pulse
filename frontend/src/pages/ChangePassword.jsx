@@ -94,7 +94,7 @@ const ChangePassword = () => {
     return (
         <Container component="main" maxWidth="sm">
             <Box sx={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 6 }}>
-                <Paper elevation={0} sx={(theme) => ({ p: 5, width: '100%', maxWidth: 520, background: theme.palette.gradients.surface, borderRadius: 4 })}>
+                <Paper elevation={0} sx={(theme) => ({ p: 5, width: '100%', maxWidth: 520, bgcolor: 'background.paper', borderRadius: 4, border: `1px solid ${theme.palette.divider}` })}>
                     <Typography variant="h4" align="center" gutterBottom>{mode === 'form' ? 'Change Password' : 'Verify Change'}</Typography>
 
                     {mode === 'form' && (
