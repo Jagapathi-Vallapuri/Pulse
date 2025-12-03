@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api, { injectLogoutHandler } from '../../client.js';
+import api, { injectLogoutHandler, injectTokenUpdateHandler } from '../../client.js';
 import { useUI } from './UIContext.jsx';
 
 const AuthContext = createContext(null);
@@ -38,10 +38,18 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         injectLogoutHandler(() => logout(false));
+        injectTokenUpdateHandler((newToken) => {
+            setToken(newToken);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('token', newToken);
+            }
+            scheduleAutoLogout(newToken);
+        });
         let cancelled = false;
         const bootstrap = async () => {
             try {
                 const t = localStorage.getItem('token');
+                const rt = localStorage.getItem('refreshToken');
                 const u = localStorage.getItem('user');
                 if (t) {
                     setToken(t);
@@ -74,12 +82,13 @@ export const AuthProvider = ({ children }) => {
         return () => { cancelled = true; };
     }, []);
 
-    const login = (newToken, newUser) => {
+    const login = (newToken, newUser, newRefreshToken) => {
         setToken(newToken);
         setUser(newUser);
         if (typeof window !== 'undefined') {
             localStorage.setItem('token', newToken);
             localStorage.setItem('user', JSON.stringify(newUser));
+            if (newRefreshToken) localStorage.setItem('refreshToken', newRefreshToken);
         }
         scheduleAutoLogout(newToken);
     };
@@ -94,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         if (typeof window !== 'undefined') {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('refreshToken');
             sessionStorage.removeItem('pendingEmail');
             sessionStorage.removeItem('pendingSessionId');
         }

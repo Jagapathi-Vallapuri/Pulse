@@ -48,10 +48,38 @@ const login = async (req, res) => {
         if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
         if (!user.isVerified) return res.status(403).json({ success: false, message: 'Account not verified. Please complete email 2FA from registration.' });
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30m' });
-        return res.json({ success: true, message: 'Login successful', data: { token, user: { id: user._id, username: user.username, email: user.email } } });
+        const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        await cache.set(refreshToken, user._id, 604800);
+        return res.json({ success: true, message: 'Login successful', data: { token, refreshToken, user: { id: user._id, username: user.username, email: user.email } } });
     } catch (err) {
         console.error('Login error:', err);
         return res.status(500).json({ success: false, message: 'Login failed', error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' });
+    }
+};
+
+const refresh = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(400).json({ success: false, message: 'Missing refresh token' });
+        }
+
+        const userId = await cache.get(refreshToken);
+        if (!userId) {
+            return res.status(401).json({ success: false, message: 'Invalid refresh token' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30m' });
+        return res.json({ success: true, message: 'Refresh successful', data: { token, refreshToken, user: { id: user._id, username: user.username, email: user.email } } });
+    }
+    catch (err) {
+        console.error('Refresh error:', err);
+        return res.status(500).json({ success: false, message: 'Refresh failed', error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' });
     }
 };
 
@@ -147,4 +175,4 @@ const set2FAVerified = async (userId) => {
     await cache.set(`2faVerified:${userId}`, 'true', 300);
 };
 
-module.exports = { register, login, verify2FAUnified, changePassword, is2FAVerified, set2FAVerified, verify2FACode };
+module.exports = { register, login, refresh, verify2FAUnified, changePassword, is2FAVerified, set2FAVerified, verify2FACode };

@@ -9,9 +9,28 @@ const api = axios.create({
 });
 
 let onUnauthorizedLogout = null;
+let onTokenUpdate = null;
 
 export const injectLogoutHandler = (logoutFn) => {
     onUnauthorizedLogout = typeof logoutFn === 'function' ? logoutFn : null;
+};
+
+export const injectTokenUpdateHandler = (updateFn) => {
+    onTokenUpdate = typeof updateFn === 'function' ? updateFn : null;
+};
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token);
+        }
+    });
+    failedQueue = [];
 };
 
 api.interceptors.request.use(
@@ -28,18 +47,50 @@ api.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-let isHandlingUnauthorized = false;
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error?.response?.status === 401) {
-            if (!isHandlingUnauthorized) {
-                isHandlingUnauthorized = true;
-                try {
-                    if (onUnauthorizedLogout) onUnauthorizedLogout();
-                } finally {
-                    setTimeout(() => { isHandlingUnauthorized = false; }, 500);
+    async (error) => {
+        const originalRequest = error.config;
+        if (error?.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise(function (resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    return api(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) {
+                isRefreshing = false;
+                if (onUnauthorizedLogout) onUnauthorizedLogout();
+                return Promise.reject(error);
+            }
+
+            try {
+                const response = await axios.post((import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_BASE || 'http://localhost:5000/api') + '/auth/refresh', { refreshToken });
+                if (response.data && response.data.success) {
+                    const { token } = response.data.data;
+                    if (onTokenUpdate) onTokenUpdate(token);
+                    api.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    processQueue(null, token);
+                    isRefreshing = false;
+                    return api(originalRequest);
+                } else {
+                    throw new Error('Refresh failed');
                 }
+            } catch (err) {
+                processQueue(err, null);
+                isRefreshing = false;
+                if (onUnauthorizedLogout) onUnauthorizedLogout();
+                return Promise.reject(err);
             }
         }
         return Promise.reject(error);
