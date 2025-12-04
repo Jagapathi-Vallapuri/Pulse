@@ -17,11 +17,16 @@ if (useMemory) {
   module.exports = {
     async get(key) {
       const e = getEntry(key);
-      return e ? e.value : null;
+      if (!e) return null;
+      try {
+        return JSON.parse(e.value);
+      } catch {
+        return e.value;
+      }
     },
     async set(key, value, ttlSeconds = 3600) {
       const expiresAt = ttlSeconds ? now() + ttlSeconds * 1000 : 0;
-      store.set(key, { value, expiresAt });
+      store.set(key, { value: JSON.stringify(value), expiresAt });
     },
     async del(key) {
       store.delete(key);
@@ -76,7 +81,13 @@ if (useMemory) {
     async get(key) {
       if (!redisConnected) return null;
       try {
-        return await client.get(key);
+        const val = await client.get(key);
+        if (!val) return null;
+        try {
+          return JSON.parse(val);
+        } catch {
+          return val;
+        }
       } catch (err) {
         console.error('Redis get error', err);
         return null;
@@ -85,7 +96,7 @@ if (useMemory) {
     async set(key, value, ttlSeconds = 3600) {
       if (!redisConnected) return;
       try {
-        await client.set(key, value, { EX: ttlSeconds });
+        await client.set(key, JSON.stringify(value), { EX: ttlSeconds });
       } catch (err) {
         console.error('Redis set error', err);
       }
