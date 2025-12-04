@@ -49,6 +49,41 @@ const createCustomTheme = (mode) => {
             button: { textTransform: 'none', fontWeight: 600, letterSpacing: '0.01em' }
         },
         components: {
+            MuiCssBaseline: {
+                styleOverrides: {
+                    'input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active': {
+                        WebkitBoxShadow: `0 0 0 1000px ${bgPaper} inset !important`,
+                        boxShadow: `0 0 0 1000px ${bgPaper} inset !important`,
+                        WebkitTextFillColor: `${isLight ? '#1e293b' : '#e2e8f0'} !important`,
+                        caretColor: isLight ? '#1e293b' : '#e2e8f0',
+                        borderRadius: 12,
+                        transition: 'background-color 86400s ease-in-out 0s, color 86400s ease-in-out 0s',
+                        WebkitBackgroundClip: 'padding-box',
+                        filter: 'none !important',
+                    },
+                    '.MuiInputBase-input:-webkit-autofill, .MuiInputBase-input:-webkit-autofill:hover, .MuiInputBase-input:-webkit-autofill:focus, .MuiInputBase-input:-webkit-autofill:active': {
+                        WebkitBoxShadow: `0 0 0 1000px ${bgPaper} inset !important`,
+                        boxShadow: `0 0 0 1000px ${bgPaper} inset !important`,
+                        WebkitTextFillColor: `${isLight ? '#1e293b' : '#e2e8f0'} !important`,
+                        caretColor: isLight ? '#1e293b' : '#e2e8f0',
+                        borderRadius: 'inherit',
+                        transition: 'background-color 86400s ease-in-out 0s, color 86400s ease-in-out 0s',
+                        WebkitBackgroundClip: 'padding-box',
+                        filter: 'none !important',
+                    },
+                    'input:-internal-autofill-selected, input:-internal-autofill-previewed, .MuiInputBase-input:-internal-autofill-selected, .MuiInputBase-input:-internal-autofill-previewed': {
+                        WebkitBoxShadow: `0 0 0 1000px ${bgPaper} inset !important`,
+                        boxShadow: `0 0 0 1000px ${bgPaper} inset !important`,
+                        WebkitTextFillColor: `${isLight ? '#1e293b' : '#e2e8f0'} !important`,
+                        caretColor: isLight ? '#1e293b' : '#e2e8f0',
+                        WebkitBackgroundClip: 'padding-box',
+                        filter: 'none !important',
+                    },
+                    'input[data-autocompleted]': {
+                        backgroundColor: 'transparent !important',
+                    },
+                }
+            },
             MuiPaper: {
                 styleOverrides: {
                     root: {
