@@ -18,12 +18,21 @@ const decodeHtmlEntities = (text) => {
 
 const withCache = async (key, fn, transform, ttlSeconds) => {
     const cached = await cache.get(key);
-    if (cached) return JSON.parse(cached);
+    if (cached !== null && cached !== undefined) {
+        if (typeof cached === 'string') {
+            try {
+                return JSON.parse(cached);
+            } catch {
+                return cached;
+            }
+        }
+        return cached;
+    }
 
     const result = await fn();
     const transformedResult = transform ? transform(result) : result;
 
-    await cache.set(key, JSON.stringify(transformedResult), ttlSeconds);
+    await cache.set(key, transformedResult, ttlSeconds);
     return transformedResult;
 };
 

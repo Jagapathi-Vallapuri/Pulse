@@ -49,7 +49,7 @@ const login = async (req, res) => {
         if (!user.isVerified) return res.status(403).json({ success: false, message: 'Account not verified. Please complete email 2FA from registration.' });
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30m' });
         const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        await cache.set(refreshToken, user._id, 604800);
+        await cache.set(refreshToken, user._id.toString(), 604800);
         return res.json({ success: true, message: 'Login successful', data: { token, refreshToken, user: { id: user._id, username: user.username, email: user.email } } });
     } catch (err) {
         console.error('Login error:', err);

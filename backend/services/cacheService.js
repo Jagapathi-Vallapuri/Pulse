@@ -1,5 +1,10 @@
 const useMemory = (process.env.CACHE_DRIVER === 'memory') || (process.env.DISABLE_REDIS === 'true');
 
+const serialize = (value) => {
+  if (value === undefined) return 'null';
+  return (typeof value === 'string' ? value : JSON.stringify(value));
+};
+
 if (useMemory) {
   const store = new Map();
 
@@ -17,16 +22,11 @@ if (useMemory) {
   module.exports = {
     async get(key) {
       const e = getEntry(key);
-      if (!e) return null;
-      try {
-        return JSON.parse(e.value);
-      } catch {
-        return e.value;
-      }
+      return e ? e.value : null;
     },
     async set(key, value, ttlSeconds = 3600) {
       const expiresAt = ttlSeconds ? now() + ttlSeconds * 1000 : 0;
-      store.set(key, { value: JSON.stringify(value), expiresAt });
+      store.set(key, { value: serialize(value), expiresAt });
     },
     async del(key) {
       store.delete(key);
@@ -81,13 +81,7 @@ if (useMemory) {
     async get(key) {
       if (!redisConnected) return null;
       try {
-        const val = await client.get(key);
-        if (!val) return null;
-        try {
-          return JSON.parse(val);
-        } catch {
-          return val;
-        }
+        return await client.get(key);
       } catch (err) {
         console.error('Redis get error', err);
         return null;
@@ -96,7 +90,7 @@ if (useMemory) {
     async set(key, value, ttlSeconds = 3600) {
       if (!redisConnected) return;
       try {
-        await client.set(key, JSON.stringify(value), { EX: ttlSeconds });
+        await client.set(key, serialize(value), { EX: ttlSeconds });
       } catch (err) {
         console.error('Redis set error', err);
       }
